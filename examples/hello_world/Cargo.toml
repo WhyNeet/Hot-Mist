@@ -1,0 +1,15 @@
+[package]
+name = "hello_world"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+# This tells cargo-component how to build the final .wasm component
+package = "local:hello-world"
+world = "handler-world"
+
+[dependencies]
+wit-bindgen = { version = "0.24", features = ["macros"] }
