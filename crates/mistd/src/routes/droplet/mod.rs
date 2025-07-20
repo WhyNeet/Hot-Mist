@@ -1,4 +1,4 @@
-pub mod define;
+pub mod create;
 pub mod execute;
 
 use std::sync::Arc;
@@ -9,6 +9,6 @@ use crate::state::AppState;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/", post(define::handler))
+        .route("/", post(create::handler))
         .route("/{id}/execute", post(execute::handler))
 }
