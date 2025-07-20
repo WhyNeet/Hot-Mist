@@ -1,15 +1,43 @@
 #![allow(unsafe_op_in_unsafe_fn)]
 
-wit_bindgen::generate!();
+use std::time::Duration;
+
+wit_bindgen::generate!({
+  world: "handler-world"
+});
 
 struct HelloWorldComponent;
 
 impl Guest for HelloWorldComponent {
-    fn handler() -> String {
-        println!("Hello, world!");
+    fn handler() {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
 
-        "Hello there!".to_string()
+        let future = handler();
+        rt.block_on(future)
     }
 }
 
 export!(HelloWorldComponent);
+
+async fn handler() {
+    let mut tasks = vec![];
+
+    for i in 0..10 {
+        let task = tokio::spawn(async move {
+            println!("Task {i} started.");
+
+            tokio::time::sleep(Duration::from_millis(1000)).await;
+
+            println!("Task {i} finished.");
+        });
+
+        tasks.push(task);
+    }
+
+    println!("Tasks spawned.");
+
+    futures::future::join_all(tasks).await;
+}

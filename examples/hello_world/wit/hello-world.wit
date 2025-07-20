@@ -1,5 +1,5 @@
 package local:hello-world;
 
 world handler-world {
-  export handler: func() -> string;
+  export handler: func();
 }

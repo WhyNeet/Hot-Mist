@@ -12,4 +12,6 @@ package = "local:hello-world"
 world = "handler-world"
 
 [dependencies]
+futures = "0.3.31"
+tokio_wasi = { version = "1.25.2", features = ["rt", "time"] }
 wit-bindgen = { version = "0.24", features = ["macros"] }
