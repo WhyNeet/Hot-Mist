@@ -1,0 +1,12 @@
+api_version: hm/v1
+metadata:
+  name: hello_world
+kind: Droplet
+spec:
+  source:
+    path: target/wasm32-wasip2/release/hello_world.wasm
+  runtime:
+    resources:
+      memory: 128Mi
+      cpu: 100m
+  secrets: []
