@@ -1,9 +1,8 @@
-use std::{fs, sync::Arc};
+use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
-use config::{RootConfig, Spec, SpecSource};
+use config::RootConfig;
 use serde::Deserialize;
-use wasmtime::component::Component;
 
 use crate::state::AppState;
 
@@ -16,21 +15,18 @@ pub async fn handler(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<DropletCreatePayload>,
 ) -> impl IntoResponse {
-    let Spec::Droplet { source, .. } = payload.config.spec;
+    if payload.config.spec.as_droplet().is_none() {
+        panic!("Not a droplet config.");
+    }
 
-    let artifact = match source {
-        SpecSource::File { path } => {
-            let bytes = fs::read(path).unwrap();
-            state.engine().precompile_component(&bytes).unwrap()
-        }
-    };
-    let component = unsafe { Component::deserialize(state.engine(), artifact) }.unwrap();
+    let name = payload.config.metadata.name.clone();
 
     state
-        .artifacts()
-        .insert(payload.config.metadata.name.clone(), component);
+        .control_panel()
+        .create_droplet(payload.config)
+        .unwrap();
 
-    tracing::info!("Created droplet: {}", payload.config.metadata.name);
+    tracing::info!("Created droplet: {}", name);
 
     StatusCode::OK
 }

@@ -1,25 +1,18 @@
-use dashmap::DashMap;
-use wasmtime::{Config, Engine, component::Component};
+use std::sync::Arc;
+
+use mistctr::ControlPanel;
 
 #[derive(Clone)]
 pub struct AppState {
-    engine: Engine,
-    artifacts: DashMap<String, Component>,
+    control_panel: Arc<ControlPanel>,
 }
 
 impl AppState {
-    pub fn new(config: &Config) -> anyhow::Result<Self> {
-        Ok(Self {
-            engine: Engine::new(config)?,
-            artifacts: DashMap::new(),
-        })
+    pub fn new(control_panel: Arc<ControlPanel>) -> Self {
+        Self { control_panel }
     }
 
-    pub fn engine(&self) -> &Engine {
-        &self.engine
-    }
-
-    pub fn artifacts(&self) -> &DashMap<String, Component> {
-        &self.artifacts
+    pub fn control_panel(&self) -> &ControlPanel {
+        &self.control_panel
     }
 }
