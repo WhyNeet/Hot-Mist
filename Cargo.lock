@@ -1576,19 +1576,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "mistctr"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "config",
+ "dashmap",
+ "wasmtime",
+ "wasmtime-wasi",
+]
+
+[[package]]
 name = "mistd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
  "config",
- "dashmap",
  "env_logger",
+ "mistctr",
  "serde",
  "tokio",
  "tracing",
- "wasmtime",
- "wasmtime-wasi",
 ]
 
 [[package]]
@@ -1866,9 +1875,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.14"
+version = "0.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de3a5d9f0aba1dbcec1cc47f0ff94a4b778fe55bca98a6dfa92e4e094e57b1c4"
+checksum = "7e8af0dde094006011e6a740d4879319439489813bd0bcdc7d821beaeeff48ec"
 dependencies = [
  "bitflags",
 ]
