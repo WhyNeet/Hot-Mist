@@ -15,7 +15,7 @@ pub async fn handler(
         Ok(result) => result,
         Err(e) => {
             tracing::error!("{e}");
-            return (StatusCode::INTERNAL_SERVER_ERROR, "".to_string());
+            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string());
         }
     };
 
