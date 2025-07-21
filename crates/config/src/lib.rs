@@ -19,6 +19,18 @@ pub enum Spec {
     },
 }
 
+impl Spec {
+    pub fn as_droplet(&self) -> Option<(&SpecSource, &SpecRuntime, &Vec<SpecSecret>)> {
+        match self {
+            Self::Droplet {
+                source,
+                runtime,
+                secrets,
+            } => Some((source, runtime, secrets)),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SpecSecret {
     pub name: String,
