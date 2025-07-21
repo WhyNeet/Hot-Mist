@@ -1,13 +1,14 @@
 use std::{fs, sync::Arc};
 
 use config::{RootConfig, Spec, SpecSource};
+use tokio::io::AsyncReadExt;
 use wasmtime::{
     Engine, Store,
     component::{Component, Linker},
 };
 use wasmtime_wasi::{
     ResourceTable,
-    p2::{WasiCtxBuilder, pipe::MemoryOutputPipe},
+    p2::{AsyncStdoutStream, WasiCtxBuilder, pipe::AsyncWriteStream},
 };
 
 use crate::{context::ControlContext, state::HostState};
@@ -23,12 +24,21 @@ impl DropletHandle {
     pub fn new(cx: &ControlContext, config: RootConfig) -> anyhow::Result<Self> {
         let Spec::Droplet { source, .. } = &config.spec;
 
-        let bytes = match source {
-            SpecSource::File { path } => fs::read(path)?,
-        };
+        let artifact_path = cx.storage().artifact_dir.join(&config.metadata.name);
+        let artifact = if fs::exists(&artifact_path)? {
+            fs::read(artifact_path)?
+        } else {
+            let bytes = match source {
+                SpecSource::File { path } => fs::read(path)?,
+            };
 
-        let artifact = cx.engine().precompile_component(&bytes)?;
-        fs::write(cx.artifact_dir().join(&config.metadata.name), &artifact)?;
+            let artifact = cx.engine().precompile_component(&bytes)?;
+            fs::write(
+                cx.storage().artifact_dir.join(&config.metadata.name),
+                &artifact,
+            )?;
+            artifact
+        };
 
         let component = unsafe { Component::deserialize(cx.engine(), artifact) }?;
 
@@ -44,7 +54,8 @@ impl DropletHandle {
     }
 
     pub async fn run(&self) -> anyhow::Result<DropletExecutionResult> {
-        let stdout = MemoryOutputPipe::new(4096);
+        let (mut reader, writer) = tokio::io::duplex(65536);
+        let stdout = AsyncStdoutStream::new(AsyncWriteStream::new(16384, writer));
 
         let table = ResourceTable::new();
         let mut ctx = WasiCtxBuilder::new();
@@ -56,7 +67,7 @@ impl DropletHandle {
             }
         }
 
-        let ctx = ctx.stdout(stdout.clone()).build();
+        let ctx = ctx.stdout(stdout).build();
 
         let state = HostState { ctx, table };
         let mut store = Store::new(&self.engine, state);
@@ -68,7 +79,9 @@ impl DropletHandle {
         let handler = instance.get_func(&mut store, "handler").unwrap();
         handler.call_async(store, &[], &mut []).await?;
 
-        let stdout = String::from_utf8(stdout.contents().to_vec())?;
+        let mut stdout = vec![];
+        reader.read_to_end(&mut stdout).await?;
+        let stdout = String::from_utf8(stdout)?;
 
         Ok(DropletExecutionResult { stdout })
     }
