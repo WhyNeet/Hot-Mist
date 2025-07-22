@@ -1,3 +1,9 @@
+pub mod context;
+pub mod droplet;
+pub mod limits;
+pub mod quantity;
+pub mod state;
+
 use std::env;
 
 use anyhow::Context;
@@ -9,10 +15,6 @@ use crate::{
     context::ControlContext,
     droplet::{DropletExecutionResult, DropletHandle},
 };
-
-pub mod context;
-pub mod droplet;
-pub mod state;
 
 pub struct ControlPanel {
     droplets: DashMap<String, DropletHandle>,

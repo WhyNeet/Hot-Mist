@@ -11,7 +11,10 @@ use wasmtime_wasi::{
     p2::{AsyncStdoutStream, WasiCtxBuilder, pipe::AsyncWriteStream},
 };
 
-use crate::{context::ControlContext, state::HostState};
+use crate::{
+    context::ControlContext, limits::StoreLimitsAsyncBuilder, quantity::ResourceQuantity,
+    state::HostState,
+};
 
 pub struct DropletHandle {
     pub config: RootConfig,
@@ -69,8 +72,16 @@ impl DropletHandle {
 
         let ctx = ctx.stdout(stdout).build();
 
-        let state = HostState { ctx, table };
+        let (_, runtime, _) = self.config.spec.as_droplet().unwrap();
+        let memory: ResourceQuantity = runtime.resources.memory.as_str().try_into()?;
+        let limits = StoreLimitsAsyncBuilder::new()
+            .memory_size(memory.as_memory().unwrap() as usize)
+            .build();
+
+        let state = HostState { ctx, table, limits };
         let mut store = Store::new(&self.engine, state);
+
+        store.limiter_async(|state| &mut state.limits);
 
         let instance = self
             .linker

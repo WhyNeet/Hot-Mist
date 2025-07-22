@@ -1,3 +1,4 @@
+use crate::limits::StoreLimitsAsync;
 use wasmtime_wasi::{
     ResourceTable,
     p2::{IoView, WasiCtx, WasiView},
@@ -6,6 +7,7 @@ use wasmtime_wasi::{
 pub struct HostState {
     pub ctx: WasiCtx,
     pub table: ResourceTable,
+    pub limits: StoreLimitsAsync,
 }
 
 impl IoView for HostState {
