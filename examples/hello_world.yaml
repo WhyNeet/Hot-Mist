@@ -7,6 +7,6 @@ spec:
     path: target/wasm32-wasip2/release/hello_world.wasm
   runtime:
     resources:
-      memory: 128Mi
+      memory: 1.5Mi
       cpu: 100m
   secrets: []
