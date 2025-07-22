@@ -1609,7 +1609,9 @@ dependencies = [
  "dashmap",
  "serde_json",
  "sled",
+ "thiserror 2.0.12",
  "tokio",
+ "tracing",
  "wasmtime",
  "wasmtime-wasi",
 ]
